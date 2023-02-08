@@ -1,3 +1,5 @@
+mod ch01;
+
 fn main() {
-    println!("Hello, world!");
+    ch01::p01_1::run();
 }
