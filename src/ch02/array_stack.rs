@@ -13,26 +13,46 @@ struct ArrayStack<T> where T: Default + Copy {
 
 impl<T> ArrayStack<T> where T: Default + Copy {
     pub fn new() -> Self {
-        ArrayStack { a: Box::new([T::default(); 16]), n: 0 }
+        ArrayStack { a: Box::new([T::default(); 4]), n: 0 }
+    }
+
+    pub fn resize(&mut self) {
+        let new_cap = usize::max(self.n * 2, 4);
+        if new_cap == self.capacity() {
+            return; // NOOP
+        }
+        let mut new_a = vec![Default::default(); new_cap].into_boxed_slice();
+        for i in 0..(self.n - 1) {
+            new_a[i] = self.a[i];
+        }
+        self.a = new_a;
+    }
+
+    pub fn capacity(&self) -> usize {
+        self.a.len()
     }
 }
 
 impl<T> List<T> for ArrayStack<T> where T: Default + Copy {
     fn size(&self) -> usize {
-        return self.n;
+        self.n
     }
 
     fn get(&self, i: usize) -> T {
-        return self.a[i];
+        self.a[i]
     }
 
     fn set(&mut self, i: usize, x: T) -> T {
         let old = self.a[i];
         self.a[i] = x;
-        return old;
+        old
     }
 
     fn add(&mut self, i: usize, x: T) {
+        if self.capacity() < self.n + 1 {
+            self.resize();
+        }
+
         let mut j = self.n;
         while j > i {
             self.a[j] = self.a[j - 1];
@@ -50,6 +70,10 @@ impl<T> List<T> for ArrayStack<T> where T: Default + Copy {
         while j < self.n {
             self.a[j] = self.a[j + 1];
             j += 1;
+        }
+
+        if (self.n * 3) < self.capacity() {
+            self.resize();
         }
 
         ret
@@ -112,5 +136,31 @@ mod tests {
 
         assert_eq!(a.get(0), 2);
         assert_eq!(a.size(), 1);
+    }
+
+    #[test]
+    fn test_resize() {
+        let mut a = ArrayStack::new();
+        a.add(0, 1);
+        a.add(1, 2);
+        a.add(2, 3);
+        a.add(3, 4);
+
+        assert_eq!(a.capacity(), 4);
+
+        a.add(4, 5);
+
+        assert_eq!(a.capacity(), 8);
+
+        a.add(5, 6);
+
+        assert_eq!(a.capacity(), 8);
+
+        a.remove(0);
+        a.remove(0);
+        a.remove(0);
+        a.remove(0);
+
+        assert_eq!(a.capacity(), 4);
     }
 }
