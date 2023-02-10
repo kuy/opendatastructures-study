@@ -16,7 +16,7 @@ impl<T> ArrayStack<T> where T: Default + Copy {
         ArrayStack { a: Box::new([T::default(); 4]), n: 0 }
     }
 
-    pub fn resize(&mut self) {
+    fn resize(&mut self) {
         let new_cap = usize::max(self.n * 2, 4);
         if new_cap == self.capacity() {
             return; // NOOP
